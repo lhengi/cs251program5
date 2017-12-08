@@ -15,6 +15,7 @@ typedef struct Node
 {
     int localTime;
     int basic;
+    int active;
     char* filename;
     struct Node* dependOn;
     
@@ -41,6 +42,7 @@ Node* createNode(char* file, int basic)
     newNode = malloc(sizeof(Node));
     
     newNode->basic = basic;
+    newNode->active = 0;
     newNode->filename = malloc(sizeof(char)*256);
     strcpy(newNode->filename, file);
     newNode->dependOn = NULL;
@@ -67,6 +69,12 @@ int readLine(Graph* graph, char* line)
     if(strcmp(tok, ":") == 0)
     {
         fprintf(stderr, "Wrong Format!\n");
+        return 0;
+    }
+    
+    if(hmap_get(graph->map, tok) != NULL)
+    {
+        fprintf(stderr, "***Error Duplicate File\n");
         return 0;
     }
     
@@ -146,26 +154,27 @@ int getTime(Graph* graph)
 void touch(Graph* graph, char* filename)
 {
     Node* pTemp = hmap_get(graph->map, filename);
-    if(pTemp->basic != 1)
-    {
-        fprintf(stderr, "***Error Can't touch basic file!\n");
-        return;
-    }
     if(pTemp == NULL)
     {
         fprintf(stderr, "***Error File does not exist\n");
         return;
     }
+    if(pTemp->basic != 1)
+    {
+        fprintf(stderr, "***Error Can't touch None basic file!\n");
+        return;
+    }
     
-    pTemp->localTime = graph->clock;
     updateClock(graph);
+    pTemp->localTime = graph->clock;
+    
     printf("%s Touched at: %d\n",filename,pTemp->localTime);
 }
 
 void timestamp(Graph* graph, char* filename)
 {
     Node* pTemp = hmap_get(graph->map, filename);
-    if(filename == NULL)
+    if(filename == NULL || pTemp == NULL)
     {
         fprintf(stderr, "*** Error File does not exist\n");
         return;
@@ -175,7 +184,142 @@ void timestamp(Graph* graph, char* filename)
 
 void allTimestamps(Graph* graph)
 {
+    int n = graph->total_vertex;
+    int i;
+    Node* pTemp;
+    for(i = 0; i < n; i++)
+    {
+        pTemp = graph->adjacency[i];
+        if(pTemp == NULL)
+            return;
+        printf("File Name: %s\tTimeStamp: %d\n",pTemp->filename,pTemp->localTime);
+        
+    }
+}
+
+int validateVertex(Graph* graph, char* filename)
+{
+    Node* vertex = hmap_get(graph->map, filename);
+    if(vertex == NULL)
+    {
+        fprintf(stderr, "Filename: %s, Does not exist\n",filename);
+        return 0;
+    }
+    if(vertex->active == 1 && vertex->basic == 0)
+    {
+        fprintf(stderr, "There's a Cycle\n");
+        return 0;
+    }
+    vertex->active = 1;
     
+    
+    // this is a basic file
+    if(vertex->basic == 1)
+    {
+        return 1;
+    }
+    
+    Node* pTemp;
+    pTemp = vertex->dependOn;
+    Node* pTemp_inGraph;
+    while (pTemp != NULL)
+    {
+        pTemp_inGraph = hmap_get(graph->map, pTemp->filename);
+        //pTemp_inGraph->active = 1;
+        if(validateVertex(graph, pTemp->filename) == 0)
+        {
+            return 0;
+        }
+        //pTemp_inGraph->active = 0;
+        
+        pTemp = pTemp->dependOn;
+    }
+    
+    vertex->active = 0;
+    return 1;
+}
+
+int validateGraph(Graph* graph)
+{
+    int n = graph->total_vertex;
+    int i;
+    Node* pTemp;
+    for(i = 0; i < n; i++)
+    {
+        pTemp = graph->adjacency[i];
+        if(pTemp == NULL)
+            return 1;
+        if(validateVertex(graph, pTemp->filename) == 0)
+        {
+            fprintf(stderr, "Something wrong with this file %s\n",pTemp->filename);
+            return 0;
+        }
+    }
+    
+    return 1;
+}
+
+// this will return time stamp
+int makeFile(Graph* graph, char* filename)
+{
+    Node* vertex = hmap_get(graph->map, filename);
+    if(vertex == NULL)
+    {
+        fprintf(stderr, "****Error File does not exist\n");
+        return -1;
+    }
+    if(vertex->basic == 1)
+    {
+        return vertex->localTime;
+    }
+    
+    Node* pTemp;
+    Node* pTemp_inGraph;
+    
+    pTemp = vertex->dependOn;
+    
+    int depend_uptoDate = 1;
+    while(pTemp != NULL)
+    {
+        pTemp_inGraph = hmap_get(graph->map, pTemp->filename);
+        
+        if(makeFile(graph, pTemp_inGraph->filename) >= vertex->localTime)
+        {
+            depend_uptoDate = 0;
+        }
+        pTemp = pTemp->dependOn;
+    }
+    
+    // doesn't need to update
+    if(depend_uptoDate)
+    {
+        printf("%s is up to date\n",vertex->filename);
+        return vertex->localTime;
+    }
+    
+    printf("making %s... done\n",vertex->filename);
+    updateClock(graph);
+    vertex->localTime = graph->clock;
+    
+    return vertex->localTime;
+    
+}
+
+void makeFileHelper(Graph* graph, char* filename)
+{
+    Node* pTemp = hmap_get(graph->map, filename);
+    if(pTemp == NULL)
+    {
+        fprintf(stderr, "***Error File does not exist\n");
+        return;
+    }
+    if(pTemp->basic == 1)
+    {
+        fprintf(stderr, "You can't make a Basic file\n");
+        return;
+    }
+    printf("Making %s:\n",filename);
+    makeFile(graph, filename);
 }
 
 
@@ -210,6 +354,62 @@ int main(int argc, const char * argv[])
     //set the adjacency array
     graph->adjacency = hmap_extract_values(graph->map);
     
+    if(validateGraph(graph) == 0)
+    {
+        fprintf(stderr, "***Error in the file, cycle or file does not exist \n");
+        return 0;
+    }
+    
+    char* userInput1;
+    char* userInput2;
+    userInput1 = malloc(sizeof(char)*256);
+    userInput2 = malloc(sizeof(char)*256);
+    printf("Select your input:\ntime\ntouch <filename>\ntimestamp <filename>\ntimestamps\nmake <target>\nquit\n");
+    while (1)
+    {
+        printf("\nEnter Here:");
+        scanf(" %s",userInput1);
+        userInput1 = strtok(userInput1, " \n\r");
+        
+        printf("\n");
+        
+        if(strcmp(userInput1, "time") == 0)
+        {
+            printf("Global Clock is at: %d\n",getTime(graph));
+        }
+        else if(strcmp(userInput1, "timestamps") == 0)
+        {
+            allTimestamps(graph);
+        }
+        else if(strcmp(userInput1, "touch") ==0 )
+        {
+            scanf(" %s",userInput2);
+            userInput2 = strtok(userInput2, " \n\r");
+            if(userInput2 != NULL)
+                touch(graph, userInput2);
+        }
+        else if (strcmp(userInput1, "timestamp") == 0 )
+        {
+            scanf(" %s",userInput2);
+            if (userInput2 != NULL)
+                timestamp(graph, userInput2);
+        }
+        else if (strcmp(userInput1, "make") == 0 )
+        {
+            scanf(" %s",userInput2);
+            if ( userInput2 != NULL)
+                makeFileHelper(graph, userInput2);
+        }
+        else if (strcmp(userInput1, "quit") == 0)
+        {
+            printf("Thanks for using. Exiting.....\n");
+            return 0;
+        }
+        else
+        {
+            printf("Command not recognized\n");
+        }
+    }
     
     /*
     if(hmap_contains(graph->map, "E"))
