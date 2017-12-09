@@ -74,6 +74,8 @@ int readLine(Graph* graph, char* line)
     
     if(hmap_get(graph->map, tok) != NULL)
     {
+        Node* colision_node =hmap_get(graph->map, tok);
+        printf("old: %s\tnew:%s\n",colision_node->filename,tok);
         fprintf(stderr, "***Error Duplicate File\n");
         return 0;
     }
@@ -332,7 +334,7 @@ int main(int argc, const char * argv[])
     char* filename;
     filename = argv[1];
     FILE* inputFile;
-    inputFile = fopen("testInput1.txt", "r");
+    inputFile = fopen(filename, "r");
     char* line;
     int formatStatus = 1;
     while (!feof(inputFile))

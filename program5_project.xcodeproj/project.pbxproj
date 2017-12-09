@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B06356A61FD99F5C00B1F206 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = B06356A51FD99F5C00B1F206 /* main.c */; settings = {COMPILER_FLAGS = "-DPVAL"; }; };
+		B06356A61FD99F5C00B1F206 /* fakemake.c in Sources */ = {isa = PBXBuildFile; fileRef = B06356A51FD99F5C00B1F206 /* fakemake.c */; settings = {COMPILER_FLAGS = "-DPVAL"; }; };
 		B06356AE1FD9D4BF00B1F206 /* hmap.c in Sources */ = {isa = PBXBuildFile; fileRef = B06356AD1FD9D4BF00B1F206 /* hmap.c */; settings = {COMPILER_FLAGS = "-DPVAL"; }; };
 /* End PBXBuildFile section */
 
@@ -25,7 +25,7 @@
 
 /* Begin PBXFileReference section */
 		B06356A21FD99F5C00B1F206 /* program5_project */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = program5_project; sourceTree = BUILT_PRODUCTS_DIR; };
-		B06356A51FD99F5C00B1F206 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		B06356A51FD99F5C00B1F206 /* fakemake.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fakemake.c; sourceTree = "<group>"; };
 		B06356AC1FD9D4BF00B1F206 /* hmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = hmap.h; sourceTree = "<group>"; };
 		B06356AD1FD9D4BF00B1F206 /* hmap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = hmap.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -60,7 +60,7 @@
 		B06356A41FD99F5C00B1F206 /* program5_project */ = {
 			isa = PBXGroup;
 			children = (
-				B06356A51FD99F5C00B1F206 /* main.c */,
+				B06356A51FD99F5C00B1F206 /* fakemake.c */,
 				B06356AC1FD9D4BF00B1F206 /* hmap.h */,
 				B06356AD1FD9D4BF00B1F206 /* hmap.c */,
 			);
@@ -124,7 +124,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B06356A61FD99F5C00B1F206 /* main.c in Sources */,
+				B06356A61FD99F5C00B1F206 /* fakemake.c in Sources */,
 				B06356AE1FD9D4BF00B1F206 /* hmap.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
